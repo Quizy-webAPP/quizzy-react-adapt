@@ -1,96 +1,322 @@
-1. Create a Department
 
-    URL: /api/departments
-    Method: POST
+#### Authentication Endpoints
 
-    Headers
-    {
-      "x-auth-token": "your-jwt-token"
-    }
+1. Register a User
 
-    Request Body:
+   - URL: `https://quizzy-react-adapt.onrender.com/api/auth/register`
+   - Method: `POST`
+   - Request Body:
+    json
+     {
+       "name": "John Doe",
+       "email": "john@example.com",
+       "password": "yourpassword"
+     }
+     - Response:
+      json
+       {
+         "token": "your-jwt-token"
+       }
+      
 
-    {
-    "name": "Computer Science",
-    "school": "School of Engineering"
-    }
+2. Login a User
 
-    Response:
-
-    {
-    "_id": "department-id",
-    "name": "Computer Science",
-    "school": "School of Engineering"
-    }
-
-2. Get All Departments
-
-    URL: /api/departments
-    Method: GET
-    Headers:
-    {
-    "x-auth-token": "your-jwt-token"
-    }
-
-    Response:
-
-    [
-        {
-            "_id": "department-id",
-            "name": "Computer Science",
-            "school": "School of Engineering"
-        },
-        ...
-    ]
-
-3. Update a Department
-
-    URL: /api/departments/:id
-    Method: PUT
-    Headers:
-
-    {
-    "x-auth-token": "your-jwt-token"
-    }
-
-    Request Body:
-
-    {
-    "name": "Computer Science",
-    "school": "School of Engineering"
-    }
-
-    Response:
-
-    {
-    "_id": "department-id",
-    "name": "Computer Science",
-    "school": "School of Engineering"
-    }
-
-4. Delete a Department
-
-    URL: /api/departments/:id
-    Method: DELETE
-    Headers:
-
-    {
-    "x-auth-token": "your-jwt-token"
-    }
-
-    Response:
-
-    {
-    "msg": "Department removed"
-    }
-
-5. Create a Course
-
-    URL: /api/courses
-    Method: POST
-    Headers:
+   - URL: `https://quizzy-react-adapt.onrender.com/api/auth/login`
+   - Method: `POST`
+   - Request Body:
+    json
+     {
+       "email": "john@example.com",
+       "password": "yourpassword"
+     }
+    
+   - Response:
+    json
+     {
+       "token": "your-jwt-token"
+     }
     
 
+#### Department Endpoints
 
+3. Create a Department
 
+   - URL: `https://quizzy-react-adapt.onrender.com/api/departments`
+   - Method: `POST`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Computer Science",
+       "school": "School of Engineering"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "department-id",
+       "name": "Computer Science",
+       "school": "School of Engineering"
+     }
+    
+
+4. Get All Departments
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/departments`
+   - Method: `GET`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     [
+       {
+         "_id": "department-id",
+         "name": "Computer Science",
+         "school": "School of Engineering"
+       },
+       ...
+     ]
+    
+
+5. Update a Department
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/departments/:id`
+   - Method: `PUT`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Computer Science",
+       "school": "School of Engineering"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "department-id",
+       "name": "Computer Science",
+       "school": "School of Engineering"
+     }
+    
+
+6. Delete a Department
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/departments/:id`
+   - Method: `DELETE`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     {
+       "msg": "Department removed"
+     }
+    
+
+#### Course Endpoints
+
+7. Create a Course
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/courses`
+   - Method: `POST`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Introduction to Programming",
+       "department": "department-id",
+       "category": "Computer Science"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "course-id",
+       "name": "Introduction to Programming",
+       "department": "department-id",
+       "category": "Computer Science"
+     }
+    
+
+8. Get All Courses
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/courses`
+   - Method: `GET`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     [
+       {
+         "_id": "course-id",
+         "name": "Introduction to Programming",
+         "department": {
+           "_id": "department-id",
+           "name": "Computer Science",
+           "school": "School of Engineering"
+         },
+         "category": "Computer Science"
+       },
+       ...
+     ]
+    
+
+9. Update a Course
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/courses/:id`
+   - Method: `PUT`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Advanced Programming",
+       "department": "department-id",
+       "category": "Computer Science"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "course-id",
+       "name": "Advanced Programming",
+       "department": "department-id",
+       "category": "Computer Science"
+     }
+    
+
+10. Delete a Course
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/courses/:id`
+   - Method: `DELETE`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     {
+       "msg": "Course removed"
+     }
+    
+
+#### Category Endpoints
+
+11. Create a Category
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/categories`
+   - Method: `POST`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Computer Science"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "category-id",
+       "name": "Computer Science"
+     }
+    
+
+12. Get All Categories
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/categories`
+   - Method: `GET`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     [
+       {
+         "_id": "category-id",
+         "name": "Computer Science"
+       },
+       ...
+     ]
+    
+
+13. Update a Category
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/categories/:id`
+   - Method: `PUT`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Request Body:
+    json
+     {
+       "name": "Engineering"
+     }
+    
+   - Response:
+    json
+     {
+       "_id": "category-id",
+       "name": "Engineering"
+     }
+    
+
+14. Delete a Category
+
+   - URL: `https://quizzy-react-adapt.onrender.com/api/categories/:id`
+   - Method: `DELETE`
+   - Headers: 
+    json
+     {
+       "x-auth-token": "your-jwt-token"
+     }
+    
+   - Response:
+    json
+     {
+       "msg": "Category removed"
+     }
+    
 

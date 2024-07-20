@@ -21,7 +21,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/courses', require('./routes/courseRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/schools', schoolRoutes);
+app.use('/api/schools', require('./routes/schoolRoutes')); // Ensure you require schoolRoutes here
 
 const PORT = process.env.PORT || 8000;
 

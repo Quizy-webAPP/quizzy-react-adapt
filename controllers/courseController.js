@@ -1,10 +1,10 @@
 const Course = require('../models/course');
 
 exports.createCourse = async (req, res) => {
-  const { name, department, category } = req.body;
+  const { name, department, category, thumbnail  } = req.body;
 
   try {
-    const newCourse = new Course({ name, department, category });
+    const newCourse = new Course({ name, department, category, thumbnail  });
     const course = await newCourse.save();
     res.json(course);
   } catch (err) {
@@ -24,7 +24,7 @@ exports.getCourses = async (req, res) => {
 };
 
 exports.updateCourse = async (req, res) => {
-  const { name, department, category } = req.body;
+  const { name, department, category, thumbnail  } = req.body;
 
   try {
     let course = await Course.findById(req.params.id);
@@ -35,6 +35,7 @@ exports.updateCourse = async (req, res) => {
     course.name = name || course.name;
     course.department = department || course.department;
     course.category = category || course.category;
+    course.thumbnail = thumbnail || course.thumbnail;
 
     course = await course.save();
     res.json

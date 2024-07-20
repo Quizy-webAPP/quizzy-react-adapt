@@ -1,63 +1,58 @@
-// controllers/schoolController.js
 const School = require('../models/School');
 
 exports.createSchool = async (req, res) => {
+  const { name } = req.body;
+
   try {
-    const { name, description } = req.body;
-    const newSchool = new School({ name, description });
-    await newSchool.save();
-    res.status(201).json(newSchool);
+    const newSchool = new School({ name });
+    const school = await newSchool.save();
+    res.json(school);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 };
 
 exports.getSchools = async (req, res) => {
   try {
     const schools = await School.find();
-    res.status(200).json(schools);
+    res.json(schools);
   } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-};
-
-exports.getSchoolById = async (req, res) => {
-  try {
-    const school = await School.findById(req.params.id);
-    if (!school) {
-      return res.status(404).json({ message: 'School not found' });
-    }
-    res.status(200).json(school);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 };
 
 exports.updateSchool = async (req, res) => {
+  const { name } = req.body;
+
   try {
-    const { name, description } = req.body;
-    const updatedSchool = await School.findByIdAndUpdate(
-      req.params.id,
-      { name, description },
-      { new: true }
-    );
-    if (!updatedSchool) {
-      return res.status(404).json({ message: 'School not found' });
+    let school = await School.findById(req.params.id);
+    if (!school) {
+      return res.status(404).json({ msg: 'School not found' });
     }
-    res.status(200).json(updatedSchool);
+
+    school.name = name || school.name;
+
+    school = await school.save();
+    res.json(school);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 };
 
 exports.deleteSchool = async (req, res) => {
   try {
-    const deletedSchool = await School.findByIdAndDelete(req.params.id);
-    if (!deletedSchool) {
-      return res.status(404).json({ message: 'School not found' });
+    let school = await School.findById(req.params.id);
+    if (!school) {
+      return res.status(404).json({ msg: 'School not found' });
     }
-    res.status(200).json({ message: 'School deleted' });
+
+    await school.remove();
+    res.json({ msg: 'School removed' });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    console.error(err.message);
+    res.status(500).send('Server error');
   }
 };

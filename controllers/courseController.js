@@ -1,17 +1,23 @@
 const Course = require('../models/course');
 
 exports.createCourse = async (req, res) => {
-  const { name, department, category, thumbnail  } = req.body;
+  const { name, department, category } = req.body;
+  const thumbnail = req.file ? req.file.path : null; // Assuming you are using multer for file uploads
 
   try {
-    const newCourse = new Course({ name, department, category, thumbnail  });
+    if (!name || !department || !category) {
+      return res.status(400).json({ msg: 'Name, department, and category are required' });
+    }
+
+    const newCourse = new Course({ name, department, category, thumbnail });
     const course = await newCourse.save();
-    res.json(course);
+    res.status(201).json(course);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
 };
+
 
 exports.getCourses = async (req, res) => {
   try {

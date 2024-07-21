@@ -22,6 +22,7 @@ app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/courses', require('./routes/courseRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/schools', require('./routes/schoolRoutes')); // Ensure you require schoolRoutes here
+app.use('/api/questions', require('./routes/questionRoutes')); // Add this line
 
 const PORT = process.env.PORT || 8000;
 

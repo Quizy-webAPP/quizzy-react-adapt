@@ -1,31 +1,46 @@
 const Question = require('../models/question');
-const Course = require('../models/course');
+const multer = require('multer');
+const path = require('path');
 
-// Create a question
-exports.createQuestion = async (req, res) => {
-  const { course, year } = req.body;
-  const file = req.file.path; // Assuming file is uploaded and the path is provided
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
 
-  try {
-    const newQuestion = new Question({ course, year, file });
-    const question = await newQuestion.save();
+const upload = multer({ storage }).single('file');
 
-    // Add question reference to the course
-    const courseDoc = await Course.findById(course);
-    courseDoc.questions.push(question._id);
-    await courseDoc.save();
+exports.createQuestion = (req, res) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(500).send('Error uploading file');
+    }
 
-    res.status(201).json(question);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
+    const { title, year, course } = req.body;
+
+    try {
+      const newQuestion = new Question({
+        title,
+        year,
+        course,
+        filePath: req.file.path,
+      });
+      const question = await newQuestion.save();
+      res.json(question);
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+    }
+  });
 };
 
-// Get all questions for a course
-exports.getQuestionsByCourse = async (req, res) => {
+exports.getQuestions = async (req, res) => {
   try {
-    const questions = await Question.find({ course: req.params.courseId });
+    const questions = await Question.find().populate('course', 'name');
     res.json(questions);
   } catch (err) {
     console.error(err.message);
@@ -33,9 +48,8 @@ exports.getQuestionsByCourse = async (req, res) => {
   }
 };
 
-// Update a question
 exports.updateQuestion = async (req, res) => {
-  const { course, year, file } = req.body;
+  const { title, year, course } = req.body;
 
   try {
     let question = await Question.findById(req.params.id);
@@ -43,9 +57,13 @@ exports.updateQuestion = async (req, res) => {
       return res.status(404).json({ msg: 'Question not found' });
     }
 
-    question.course = course || question.course;
+    if (req.file) {
+      question.filePath = req.file.path;
+    }
+
+    question.title = title || question.title;
     question.year = year || question.year;
-    question.file = file || question.file;
+    question.course = course || question.course;
 
     question = await question.save();
     res.json(question);
@@ -55,7 +73,6 @@ exports.updateQuestion = async (req, res) => {
   }
 };
 
-// Delete a question
 exports.deleteQuestion = async (req, res) => {
   try {
     let question = await Question.findById(req.params.id);

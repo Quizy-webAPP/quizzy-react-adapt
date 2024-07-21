@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const QuestionSchema = new mongoose.Schema({
-  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+  title: { type: String, required: true },
   year: { type: Number, required: true },
-  file: { type: String, required: true } // URL to the document file
+  course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
+  filePath: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Question', QuestionSchema);
-                                                                                                                                                                                                                                                                                    

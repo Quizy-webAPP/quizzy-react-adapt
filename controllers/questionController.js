@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage }).single('file');
+const upload = multer({ storage });
 
 exports.createQuestion = (req, res) => {
   upload(req, res, async (err) => {

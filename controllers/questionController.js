@@ -1,6 +1,5 @@
 const Question = require('../models/question');
 const multer = require('multer');
-const path = require('path');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -17,32 +16,23 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
+exports.createQuestion = async (req, res) => {
+  const { title, year, course } = req.body;
 
-exports.createQuestion = (req, res) => {
-  upload.single('file')(req, res, async (err) => {
-    if (err) {
-      console.error('Error uploading file:', err);
-      return res.status(500).send('Error uploading file');
-    }
-
-    const { title, year, course } = req.body;
-
-    try {
-      const newQuestion = new Question({
-        title,
-        year,
-        course,
-        filePath: req.file?.path || '', // Ensure filePath is set or empty string
-      });
-      const question = await newQuestion.save();
-      res.status(201).json(question);
-    } catch (err) {
-      console.error('Error saving question:', err.message);
-      res.status(500).send('Server error');
-    }
-  });
+  try {
+    const newQuestion = new Question({
+      title,
+      year,
+      course,
+      filePath: req.file?.path || '', // Ensure filePath is set or empty string
+    });
+    const question = await newQuestion.save();
+    res.status(201).json(question);
+  } catch (err) {
+    console.error('Error saving question:', err.message);
+    res.status(500).send('Server error');
+  }
 };
-
 
 exports.getQuestions = async (req, res) => {
   try {

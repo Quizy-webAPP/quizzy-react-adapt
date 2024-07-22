@@ -1,21 +1,17 @@
 const express = require('express');
 const { createQuestion, getQuestions, updateQuestion, deleteQuestion } = require('../controllers/questionController');
 const auth = require('../middleware/authMiddleware');
-const router = express.Router();
 const multer = require('multer');
 
 // Configure multer for file uploads
 const upload = multer({ dest: 'uploads/' });
 
+const router = express.Router();
+
 // @route   POST api/questions
 // @desc    Create a question
 // @access  Private
-router.post('/', auth, (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) return next(err);
-    createQuestion(req, res);
-  });
-});
+router.post('/', auth, upload.single('file'), createQuestion);
 
 // @route   GET api/questions
 // @desc    Get all questions
@@ -25,12 +21,7 @@ router.get('/', auth, getQuestions);
 // @route   PUT api/questions/:id
 // @desc    Update a question
 // @access  Private
-router.put('/:id', auth, (req, res, next) => {
-  upload.single('file')(req, res, (err) => {
-    if (err) return next(err);
-    updateQuestion(req, res);
-  });
-});
+router.put('/:id', auth, upload.single('file'), updateQuestion);
 
 // @route   DELETE api/questions/:id
 // @desc    Delete a question

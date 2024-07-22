@@ -17,15 +17,22 @@ const upload = multer({
 });
 
 exports.createQuestion = async (req, res) => {
-  const { title, year, course } = req.body;
-
+  const { title, year, courseName } = req.body;
+  
   try {
+    // Find course by name
+    const course = await Course.findOne({ name: courseName });
+    if (!course) {
+      return res.status(400).json({ msg: 'Course not found' });
+    }
+
     const newQuestion = new Question({
       title,
       year,
-      course,
+      course: course._id, // Use the ObjectId of the course
       filePath: req.file?.path || '', // Ensure filePath is set or empty string
     });
+
     const question = await newQuestion.save();
     res.status(201).json(question);
   } catch (err) {
@@ -33,6 +40,7 @@ exports.createQuestion = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 exports.getQuestions = async (req, res) => {
   try {
@@ -45,12 +53,21 @@ exports.getQuestions = async (req, res) => {
 };
 
 exports.updateQuestion = async (req, res) => {
-  const { title, year, course } = req.body;
+  const { title, year, courseName } = req.body;
 
   try {
     let question = await Question.findById(req.params.id);
     if (!question) {
       return res.status(404).json({ msg: 'Question not found' });
+    }
+
+    // Find course by name if courseName is provided
+    if (courseName) {
+      const course = await Course.findOne({ name: courseName });
+      if (!course) {
+        return res.status(400).json({ msg: 'Course not found' });
+      }
+      question.course = course._id; // Use the ObjectId of the course
     }
 
     if (req.file) {
@@ -59,7 +76,6 @@ exports.updateQuestion = async (req, res) => {
 
     question.title = title || question.title;
     question.year = year || question.year;
-    question.course = course || question.course;
 
     question = await question.save();
     res.json(question);
@@ -68,6 +84,7 @@ exports.updateQuestion = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 exports.deleteQuestion = async (req, res) => {
   try {

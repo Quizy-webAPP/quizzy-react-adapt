@@ -12,7 +12,11 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+});
+
 
 exports.createQuestion = (req, res) => {
   upload.single('file')(req, res, async (err) => {
@@ -28,16 +32,17 @@ exports.createQuestion = (req, res) => {
         title,
         year,
         course,
-        filePath: req.file.path,
+        filePath: req.file?.path || '', // Ensure filePath is set or empty string
       });
       const question = await newQuestion.save();
-      res.json(question);
+      res.status(201).json(question);
     } catch (err) {
       console.error('Error saving question:', err.message);
       res.status(500).send('Server error');
     }
   });
 };
+
 
 exports.getQuestions = async (req, res) => {
   try {

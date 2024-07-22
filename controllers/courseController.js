@@ -2,7 +2,7 @@ const Course = require('../models/course');
 
 exports.createCourse = async (req, res) => {
   const { name, department, category } = req.body;
-  const thumbnail = req.file ? req.file.path : null; // Assuming you are using multer for file uploads
+  const thumbnail = req.file ? req.file.path : null;
 
   try {
     if (!name || !department || !category) {
@@ -14,9 +14,10 @@ exports.createCourse = async (req, res) => {
     res.status(201).json(course);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).json({ error: err.message });
   }
 };
+
 
 
 exports.getCourses = async (req, res) => {

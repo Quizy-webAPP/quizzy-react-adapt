@@ -10,18 +10,27 @@ const upload = multer({ dest: 'uploads/' });
 // @route   POST api/questions
 // @desc    Create a question
 // @access  Private
-router.post('/', auth, upload.single('file'), createQuestion);
+router.post('/', auth, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) return next(err);
+    createQuestion(req, res);
+  });
+});
 
 // @route   GET api/questions
 // @desc    Get all questions
 // @access  Private
 router.get('/', auth, getQuestions);
 
-
 // @route   PUT api/questions/:id
 // @desc    Update a question
 // @access  Private
-router.put('/:id', auth, upload.single('file'), updateQuestion);
+router.put('/:id', auth, (req, res, next) => {
+  upload.single('file')(req, res, (err) => {
+    if (err) return next(err);
+    updateQuestion(req, res);
+  });
+});
 
 // @route   DELETE api/questions/:id
 // @desc    Delete a question

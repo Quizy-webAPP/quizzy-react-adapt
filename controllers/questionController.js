@@ -15,7 +15,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 exports.createQuestion = (req, res) => {
-  upload(req, res, async (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) {
       console.error('Error uploading file:', err);
       return res.status(500).send('Error uploading file');

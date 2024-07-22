@@ -17,6 +17,7 @@ const upload = multer({ storage }).single('file');
 exports.createQuestion = (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
+      console.error('Error uploading file:', err);
       return res.status(500).send('Error uploading file');
     }
 
@@ -32,7 +33,7 @@ exports.createQuestion = (req, res) => {
       const question = await newQuestion.save();
       res.json(question);
     } catch (err) {
-      console.error(err.message);
+      console.error('Error saving question:', err.message);
       res.status(500).send('Server error');
     }
   });
@@ -43,7 +44,7 @@ exports.getQuestions = async (req, res) => {
     const questions = await Question.find().populate('course', 'name');
     res.json(questions);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error fetching questions:', err.message);
     res.status(500).send('Server error');
   }
 };
@@ -68,7 +69,7 @@ exports.updateQuestion = async (req, res) => {
     question = await question.save();
     res.json(question);
   } catch (err) {
-    console.error(err.message);
+    console.error('Error updating question:', err.message);
     res.status(500).send('Server error');
   }
 };
@@ -83,7 +84,7 @@ exports.deleteQuestion = async (req, res) => {
     await question.remove();
     res.json({ msg: 'Question removed' });
   } catch (err) {
-    console.error(err.message);
+    console.error('Error deleting question:', err.message);
     res.status(500).send('Server error');
   }
 };

@@ -3,6 +3,7 @@ const connectDB = require('./config/db');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
+// Load environment variables
 dotenv.config();
 
 // Connect Database
@@ -21,9 +22,18 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/courses', require('./routes/courseRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/schools', require('./routes/schoolRoutes')); // Ensure you require schoolRoutes here
-app.use('/api/questions', require('./routes/questionRoutes')); // Add this line
+app.use('/api/schools', require('./routes/schoolRoutes'));
+app.use('/api/questions', require('./routes/questionRoutes')); // Questions route
 
+// Serve static files (for uploaded files)
+app.use('/uploads', express.static('uploads'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
+// Start the server
 const PORT = process.env.PORT || 8000;
-
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));

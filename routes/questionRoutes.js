@@ -1,17 +1,19 @@
 const express = require('express');
-const { createQuestion, getQuestions, updateQuestion, deleteQuestion } = require('../controllers/questionController');
+const {
+  createQuestion,
+  getQuestions,
+  updateQuestion,
+  deleteQuestion,
+  getFile,
+} = require('../controllers/questionController');
 const auth = require('../middleware/authMiddleware');
-const multer = require('multer');
-
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
 
 const router = express.Router();
 
 // @route   POST api/questions
 // @desc    Create a question
 // @access  Private
-router.post('/', auth, upload.single('file'), createQuestion);
+router.post('/', auth, createQuestion);
 
 // @route   GET api/questions
 // @desc    Get all questions
@@ -21,11 +23,16 @@ router.get('/', auth, getQuestions);
 // @route   PUT api/questions/:id
 // @desc    Update a question
 // @access  Private
-router.put('/:id', auth, upload.single('file'), updateQuestion);
+router.put('/:id', auth, updateQuestion);
 
 // @route   DELETE api/questions/:id
 // @desc    Delete a question
 // @access  Private
 router.delete('/:id', auth, deleteQuestion);
+
+// @route   GET /uploads/:filename
+// @desc    Serve uploaded files
+// @access  Private (or Public based on your requirement)
+router.get('/uploads/:filename', getFile);
 
 module.exports = router;

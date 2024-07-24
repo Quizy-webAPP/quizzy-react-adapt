@@ -4,7 +4,6 @@ const {
   getQuestions,
   updateQuestion,
   deleteQuestion,
-  getFile,
 } = require('../controllers/questionController');
 const auth = require('../middleware/authMiddleware');
 
@@ -29,10 +28,5 @@ router.put('/:id', auth, updateQuestion);
 // @desc    Delete a question
 // @access  Private
 router.delete('/:id', auth, deleteQuestion);
-
-// @route   GET /uploads/:filename
-// @desc    Serve uploaded files
-// @access  Private (or Public based on your requirement)
-router.get('/uploads/:filename', getFile);
 
 module.exports = router;

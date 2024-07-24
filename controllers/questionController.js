@@ -1,40 +1,47 @@
+const cloudinary = require('../config/cloudinary'); // Import your Cloudinary configuration
 const Question = require('../models/question');
+const streamifier = require('streamifier');
 const multer = require('multer');
-const path = require('path');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
+// Configure multer for in-memory file uploads
+const storage = multer.memoryStorage(); // Use memory storage for Cloudinary
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 }).single('file');
 
 // Create a new question
-exports.createQuestion = (req, res) => {
+exports.createQuestion = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ msg: 'File upload error' });
     }
-    const { title, year, course } = req.body;
 
     try {
-      const newQuestion = new Question({
-        title,
-        year,
-        course,
-        filePath: req.file ? req.file.path : '',
+      // Upload file to Cloudinary
+      const uploadStream = cloudinary.uploader.upload_stream();
+      const bufferStream = streamifier.createReadStream(req.file.buffer);
+
+      bufferStream.pipe(uploadStream);
+
+      uploadStream.on('finish', async () => {
+        const { title, year, course } = req.body;
+
+        const newQuestion = new Question({
+          title,
+          year,
+          course,
+          filePath: uploadStream.url, // Store Cloudinary URL
+        });
+
+        const question = await newQuestion.save();
+        res.status(201).json(question);
       });
 
-      const question = await newQuestion.save();
-      res.status(201).json(question);
+      uploadStream.on('error', (uploadErr) => {
+        console.error('Cloudinary upload error:', uploadErr.message);
+        res.status(500).send('Server error');
+      });
     } catch (err) {
       console.error('Error saving question:', err.message);
       res.status(500).send('Server error');
@@ -54,12 +61,11 @@ exports.getQuestions = async (req, res) => {
 };
 
 // Update a question
-exports.updateQuestion = (req, res) => {
+exports.updateQuestion = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ msg: 'File upload error' });
     }
-    const { title, year, course } = req.body;
 
     try {
       let question = await Question.findById(req.params.id);
@@ -67,12 +73,28 @@ exports.updateQuestion = (req, res) => {
         return res.status(404).json({ msg: 'Question not found' });
       }
 
+      const { title, year, course } = req.body;
+
+      if (req.file) {
+        // Upload new file to Cloudinary and get the URL
+        const uploadStream = cloudinary.uploader.upload_stream();
+        const bufferStream = streamifier.createReadStream(req.file.buffer);
+
+        bufferStream.pipe(uploadStream);
+
+        uploadStream.on('finish', async () => {
+          question.filePath = uploadStream.url; // Update filePath with Cloudinary URL
+        });
+
+        uploadStream.on('error', (uploadErr) => {
+          console.error('Cloudinary upload error:', uploadErr.message);
+          res.status(500).send('Server error');
+        });
+      }
+
       question.title = title || question.title;
       question.year = year || question.year;
       question.course = course || question.course;
-      if (req.file) {
-        question.filePath = req.file.path;
-      }
 
       question = await question.save();
       res.json(question);
@@ -97,14 +119,4 @@ exports.deleteQuestion = async (req, res) => {
     console.error('Error deleting question:', err.message);
     res.status(500).send('Server error');
   }
-};
-
-// Serve uploaded files
-exports.getFile = (req, res) => {
-  const filePath = path.join(__dirname, '../', req.params.path);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(404).json({ msg: 'File not found' });
-    }
-  });
 };

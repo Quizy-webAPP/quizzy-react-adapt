@@ -4,7 +4,7 @@ const streamifier = require('streamifier');
 const multer = require('multer');
 
 // Configure multer for in-memory file uploads
-const storage = multer.memoryStorage(); // Use memory storage for Cloudinary
+const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
@@ -18,32 +18,38 @@ exports.createQuestion = async (req, res) => {
     }
 
     try {
+      const { title, year, course } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ msg: 'File is required' });
+      }
+
       // Upload file to Cloudinary
-      const uploadStream = cloudinary.uploader.upload_stream();
-      const bufferStream = streamifier.createReadStream(req.file.buffer);
-
-      bufferStream.pipe(uploadStream);
-
-      uploadStream.on('finish', async () => {
-        const { title, year, course } = req.body;
+      const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error.message);
+          return res.status(500).send('Server error');
+        }
 
         const newQuestion = new Question({
           title,
           year,
           course,
-          filePath: uploadStream.url, // Store Cloudinary URL
+          filePath: result.secure_url, // Store Cloudinary URL
         });
 
-        const question = await newQuestion.save();
-        res.status(201).json(question);
+        newQuestion.save()
+          .then(question => res.status(201).json(question))
+          .catch(err => {
+            console.error('Error saving question:', err.message);
+            res.status(500).send('Server error');
+          });
       });
 
-      uploadStream.on('error', (uploadErr) => {
-        console.error('Cloudinary upload error:', uploadErr.message);
-        res.status(500).send('Server error');
-      });
+      streamifier.createReadStream(file.buffer).pipe(uploadStream);
     } catch (err) {
-      console.error('Error saving question:', err.message);
+      console.error('Error processing file:', err.message);
       res.status(500).send('Server error');
     }
   });
@@ -74,30 +80,38 @@ exports.updateQuestion = async (req, res) => {
       }
 
       const { title, year, course } = req.body;
+      const file = req.file;
 
-      if (req.file) {
+      if (file) {
         // Upload new file to Cloudinary and get the URL
-        const uploadStream = cloudinary.uploader.upload_stream();
-        const bufferStream = streamifier.createReadStream(req.file.buffer);
+        const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
+          if (error) {
+            console.error('Cloudinary upload error:', error.message);
+            return res.status(500).send('Server error');
+          }
 
-        bufferStream.pipe(uploadStream);
+          question.filePath = result.secure_url; // Update filePath with Cloudinary URL
 
-        uploadStream.on('finish', async () => {
-          question.filePath = uploadStream.url; // Update filePath with Cloudinary URL
+          updateAndSaveQuestion();
         });
 
-        uploadStream.on('error', (uploadErr) => {
-          console.error('Cloudinary upload error:', uploadErr.message);
-          res.status(500).send('Server error');
-        });
+        streamifier.createReadStream(file.buffer).pipe(uploadStream);
+      } else {
+        updateAndSaveQuestion();
       }
 
-      question.title = title || question.title;
-      question.year = year || question.year;
-      question.course = course || question.course;
+      function updateAndSaveQuestion() {
+        question.title = title || question.title;
+        question.year = year || question.year;
+        question.course = course || question.course;
 
-      question = await question.save();
-      res.json(question);
+        question.save()
+          .then(updatedQuestion => res.json(updatedQuestion))
+          .catch(err => {
+            console.error('Error updating question:', err.message);
+            res.status(500).send('Server error');
+          });
+      }
     } catch (err) {
       console.error('Error updating question:', err.message);
       res.status(500).send('Server error');

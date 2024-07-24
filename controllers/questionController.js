@@ -1,8 +1,5 @@
 const Dropbox = require('dropbox').Dropbox;
-const fs = require('fs');
-const path = require('path');
 const multer = require('multer');
-const { Buffer } = require('buffer');
 const Question = require('../models/question');
 
 // Configure multer for in-memory file uploads
@@ -12,13 +9,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 }).single('file');
 
-// Initialize Dropbox client
-// const dbx = new Dropbox({ accessToken: 'jiub1lpc9mndrfi' }); // Replace with your access token
-
+// Initialize Dropbox client with access token from environment variables
 const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 
-
-// Function to upload file to Dropbox
+// Function to upload file to Dropbox and return the file URL
 const uploadToDropbox = async (fileBuffer, fileName) => {
   try {
     const response = await dbx.filesUpload({
@@ -29,7 +23,7 @@ const uploadToDropbox = async (fileBuffer, fileName) => {
     const linkResponse = await dbx.sharingCreateSharedLinkWithSettings({
       path: response.result.path_lower,
     });
-    return linkResponse.result.url;
+    return linkResponse.url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
   } catch (error) {
     console.error('Dropbox upload error:', error.message);
     throw error;
@@ -51,7 +45,7 @@ exports.createQuestion = async (req, res) => {
         return res.status(400).json({ msg: 'File is required' });
       }
 
-      // Upload file to Dropbox
+      // Upload file to Dropbox and get the URL
       const filePath = await uploadToDropbox(file.buffer, file.originalname);
 
       const newQuestion = new Question({

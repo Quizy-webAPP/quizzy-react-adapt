@@ -1,7 +1,9 @@
-const cloudinary = require('../config/cloudinary'); // Import your Cloudinary configuration
-const Question = require('../models/question');
-const streamifier = require('streamifier');
+const Dropbox = require('dropbox').Dropbox;
+const fs = require('fs');
+const path = require('path');
 const multer = require('multer');
+const { Buffer } = require('buffer');
+const Question = require('../models/question');
 
 // Configure multer for in-memory file uploads
 const storage = multer.memoryStorage();
@@ -9,6 +11,27 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 }).single('file');
+
+// Initialize Dropbox client
+const dbx = new Dropbox({ accessToken: 'jiub1lpc9mndrfi' }); // Replace with your access token
+
+// Function to upload file to Dropbox
+const uploadToDropbox = async (fileBuffer, fileName) => {
+  try {
+    const response = await dbx.filesUpload({
+      path: '/' + fileName,
+      contents: fileBuffer,
+    });
+    // Create a shared link to make the file publicly accessible
+    const linkResponse = await dbx.sharingCreateSharedLinkWithSettings({
+      path: response.result.path_lower,
+    });
+    return linkResponse.result.url;
+  } catch (error) {
+    console.error('Dropbox upload error:', error.message);
+    throw error;
+  }
+};
 
 // Create a new question
 exports.createQuestion = async (req, res) => {
@@ -25,29 +48,18 @@ exports.createQuestion = async (req, res) => {
         return res.status(400).json({ msg: 'File is required' });
       }
 
-      // Upload file to Cloudinary
-      const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
-        if (error) {
-          console.error('Cloudinary upload error:', error.message);
-          return res.status(500).send('Server error');
-        }
+      // Upload file to Dropbox
+      const filePath = await uploadToDropbox(file.buffer, file.originalname);
 
-        const newQuestion = new Question({
-          title,
-          year,
-          course,
-          filePath: result.secure_url, // Store Cloudinary URL
-        });
-
-        newQuestion.save()
-          .then(question => res.status(201).json(question))
-          .catch(err => {
-            console.error('Error saving question:', err.message);
-            res.status(500).send('Server error');
-          });
+      const newQuestion = new Question({
+        title,
+        year,
+        course,
+        filePath, // Store Dropbox URL
       });
 
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
+      await newQuestion.save();
+      res.status(201).json(newQuestion);
     } catch (err) {
       console.error('Error processing file:', err.message);
       res.status(500).send('Server error');
@@ -83,35 +95,17 @@ exports.updateQuestion = async (req, res) => {
       const file = req.file;
 
       if (file) {
-        // Upload new file to Cloudinary and get the URL
-        const uploadStream = cloudinary.uploader.upload_stream((error, result) => {
-          if (error) {
-            console.error('Cloudinary upload error:', error.message);
-            return res.status(500).send('Server error');
-          }
-
-          question.filePath = result.secure_url; // Update filePath with Cloudinary URL
-
-          updateAndSaveQuestion();
-        });
-
-        streamifier.createReadStream(file.buffer).pipe(uploadStream);
-      } else {
-        updateAndSaveQuestion();
+        // Upload new file to Dropbox and get the URL
+        const filePath = await uploadToDropbox(file.buffer, file.originalname);
+        question.filePath = filePath; // Update filePath with Dropbox URL
       }
 
-      function updateAndSaveQuestion() {
-        question.title = title || question.title;
-        question.year = year || question.year;
-        question.course = course || question.course;
+      question.title = title || question.title;
+      question.year = year || question.year;
+      question.course = course || question.course;
 
-        question.save()
-          .then(updatedQuestion => res.json(updatedQuestion))
-          .catch(err => {
-            console.error('Error updating question:', err.message);
-            res.status(500).send('Server error');
-          });
-      }
+      await question.save();
+      res.json(question);
     } catch (err) {
       console.error('Error updating question:', err.message);
       res.status(500).send('Server error');

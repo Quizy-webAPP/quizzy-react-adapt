@@ -13,7 +13,7 @@ const upload = multer({
 }).single('file');
 
 // Initialize Dropbox client
-const dbx = new Dropbox({ accessToken: '9rbe6c1i1b9mji1' }); // Replace with your access token
+const dbx = new Dropbox({ accessToken: 'jiub1lpc9mndrfi' }); // Replace with your access token
 
 // Function to upload file to Dropbox
 const uploadToDropbox = async (fileBuffer, fileName) => {

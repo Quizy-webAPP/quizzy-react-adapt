@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   try {
     let user = await User.findOne({ email });
@@ -14,7 +14,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ msg: 'User already exists' });
     }
 
-    user = new User({ name, email, password });
+    user = new User({ name, email, password, role });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
@@ -24,6 +24,7 @@ exports.register = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
+        role: user.role // Include role in payload
       },
     };
 
@@ -36,6 +37,7 @@ exports.register = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -54,6 +56,7 @@ exports.login = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
+        role: user.role // Include role in payload
       },
     };
 
@@ -66,3 +69,4 @@ exports.login = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+

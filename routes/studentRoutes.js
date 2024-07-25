@@ -1,7 +1,7 @@
 // routes/studentRoutes.js
 const express = require('express');
 const { registerStudent, loginStudent, getStudentProfile } = require('../controllers/studentController');
-const auth = require('../middleware/authMiddlewares');
+const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   POST /api/students/register

@@ -14,8 +14,11 @@ exports.createDepartment = async (req, res) => {
 };
 
 exports.getDepartments = async (req, res) => {
+  const { school } = req.query; // Get the school parameter from query
+
   try {
-    const departments = await Department.find();
+    const query = school ? { school } : {}; // Filter by school if provided
+    const departments = await Department.find(query);
     res.json(departments);
   } catch (err) {
     console.error(err.message);

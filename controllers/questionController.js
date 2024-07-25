@@ -15,50 +15,20 @@ const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
 // Function to upload file to Dropbox and return the file URL
 const uploadToDropbox = async (fileBuffer, fileName) => {
   try {
-    // Ensure the file name is not undefined
-    if (!fileName) {
-      throw new Error('File name is undefined');
-    }
-
-    // Check if a file with the same name already exists
-    let uniqueFileName = fileName;
-    let attempt = 0;
-    while (true) {
-      try {
-        await dbx.filesGetMetadata({ path: '/' + uniqueFileName });
-        // If no error is thrown, the file exists; modify the name
-        uniqueFileName = `${attempt}_${fileName}`;
-        attempt++;
-      } catch (err) {
-        // If a 409 error occurs, the file does not exist
-        if (err.response && err.response.status !== 409) {
-          throw err;
-        }
-        break;
-      }
-    }
-
-    // Upload the file with the determined unique name
     const response = await dbx.filesUpload({
-      path: '/' + uniqueFileName,
+      path: '/' + fileName,
       contents: fileBuffer,
     });
-
     // Create a shared link to make the file publicly accessible
     const linkResponse = await dbx.sharingCreateSharedLinkWithSettings({
       path: response.result.path_lower,
     });
-
-    return linkResponse.result.url;
+    return linkResponse.url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
   } catch (error) {
     console.error('Dropbox upload error:', error.message);
-    if (error.response) {
-      console.error('Error response:', error.response.data);
-    }
     throw error;
   }
 };
-
 
 // Create a new question
 exports.createQuestion = async (req, res) => {

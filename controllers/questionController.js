@@ -9,23 +9,17 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 }).single('file');
 
-// Initialize Dropbox client with access token from environment variables
-const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN });
-
-// Function to upload file to Dropbox and return the file URL
-const uploadToDropbox = async (fileBuffer, fileName) => {
+// Function to upload file to Firebase and return the file URL
+const uploadToFirebase = async (fileBuffer, fileName) => {
   try {
-    const response = await dbx.filesUpload({
-      path: '/' + fileName,
-      contents: fileBuffer,
+    const file = bucket.file(fileName);
+    await file.save(fileBuffer, {
+      metadata: { contentType: 'application/octet-stream' },
     });
-    // Create a shared link to make the file publicly accessible
-    const linkResponse = await dbx.sharingCreateSharedLinkWithSettings({
-      path: response.result.path_lower,
-    });
-    return linkResponse.url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('?dl=0', '');
+    const [url] = await file.getSignedUrl({ action: 'read', expires: '03-09-2491' }); // Set an appropriate expiry date
+    return url;
   } catch (error) {
-    console.error('Dropbox upload error:', error.message);
+    console.error('Firebase upload error:', error.message);
     throw error;
   }
 };
@@ -45,14 +39,14 @@ exports.createQuestion = async (req, res) => {
         return res.status(400).json({ msg: 'File is required' });
       }
 
-      // Upload file to Dropbox and get the URL
-      const filePath = await uploadToDropbox(file.buffer, file.originalname);
+      // Upload file to Firebase and get the URL
+      const filePath = await uploadToFirebase(file.buffer, file.originalname);
 
       const newQuestion = new Question({
         title,
         year,
         course,
-        filePath, // Store Dropbox URL
+        filePath, // Store Firebase URL
       });
 
       await newQuestion.save();
@@ -63,6 +57,7 @@ exports.createQuestion = async (req, res) => {
     }
   });
 };
+
 
 // Get all questions
 exports.getQuestions = async (req, res) => {

@@ -1,6 +1,16 @@
-const Dropbox = require('dropbox').Dropbox;
+const admin = require('firebase-admin');
 const multer = require('multer');
 const Question = require('../models/question');
+
+// Initialize Firebase Admin SDK
+const serviceAccount = require('../school-management-e7a71-firebase-adminsdk-8dn9n-dbc0b4ca7b.json');
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: 'gs://school-management-e7a71.appspot.com' // Replace with your Firebase Storage bucket URL
+});
+
+const bucket = admin.storage().bucket();
 
 // Configure multer for in-memory file uploads
 const storage = multer.memoryStorage();
@@ -58,7 +68,6 @@ exports.createQuestion = async (req, res) => {
   });
 };
 
-
 // Get all questions
 exports.getQuestions = async (req, res) => {
   try {
@@ -87,9 +96,9 @@ exports.updateQuestion = async (req, res) => {
       const file = req.file;
 
       if (file) {
-        // Upload new file to Dropbox and get the URL
-        const filePath = await uploadToDropbox(file.buffer, file.originalname);
-        question.filePath = filePath; // Update filePath with Dropbox URL
+        // Upload new file to Firebase and get the URL
+        const filePath = await uploadToFirebase(file.buffer, file.originalname);
+        question.filePath = filePath; // Update filePath with Firebase URL
       }
 
       question.title = title || question.title;

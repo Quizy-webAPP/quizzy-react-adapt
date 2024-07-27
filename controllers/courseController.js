@@ -1,7 +1,7 @@
 const Course = require('../models/course');
 
 exports.createCourse = async (req, res) => {
-  const { name, department, category } = req.body;
+  const { name, department, category, description } = req.body;
   const thumbnail = req.file ? req.file.path : null;
 
   try {
@@ -9,7 +9,7 @@ exports.createCourse = async (req, res) => {
       return res.status(400).json({ msg: 'Name, department, and category are required' });
     }
 
-    const newCourse = new Course({ name, department, category, thumbnail });
+    const newCourse = new Course({ name, department, category, description, thumbnail });
     const course = await newCourse.save();
     res.status(201).json(course);
   } catch (err) {
@@ -31,7 +31,7 @@ exports.getCourses = async (req, res) => {
 };
 
 exports.updateCourse = async (req, res) => {
-  const { name, department, category, thumbnail  } = req.body;
+  const { name, department, category, description, thumbnail } = req.body;
 
   try {
     let course = await Course.findById(req.params.id);
@@ -42,16 +42,17 @@ exports.updateCourse = async (req, res) => {
     course.name = name || course.name;
     course.department = department || course.department;
     course.category = category || course.category;
+    course.description = description || course.description; // Update description
     course.thumbnail = thumbnail || course.thumbnail;
 
     course = await course.save();
-    res.json
-    (course);
-} catch (err) {
-  console.error(err.message);
-  res.status(500).send('Server error');
-}
+    res.json(course);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
 };
+
 
 exports.deleteCourse = async (req, res) => {
 try {

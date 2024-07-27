@@ -1,5 +1,30 @@
 const Course = require('../models/course');
 const Student = require('../models/Student');
+const Enrollment = require('../models/enrollment'); // Ensure this path is correct
+
+// Check if a student is enrolled in a specific course
+const checkEnrollmentStatus = async (req, res) => {
+    try {
+        const { courseId } = req.query;
+        const userId = req.user._id; // Assuming user ID is available in `req.user`
+
+        if (!courseId) {
+            return res.status(400).json({ message: 'Course ID is required' });
+        }
+
+        const enrollment = await Enrollment.findOne({ course: courseId, student: userId });
+
+        if (enrollment) {
+            return res.status(200).json({ isEnrolled: true });
+        } else {
+            return res.status(200).json({ isEnrolled: false });
+        }
+    } catch (error) {
+        console.error('Failed to check enrollment status:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
 
 const enrollInCourse = async (req, res) => {
   const { courseId, studentId } = req.body;
@@ -65,4 +90,5 @@ const unenrollFromCourse = async (req, res) => {
   }
 };
 
-module.exports = { enrollInCourse, unenrollFromCourse };
+module.exports = { enrollInCourse, checkEnrollmentStatus, unenrollFromCourse };
+

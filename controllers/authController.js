@@ -78,3 +78,72 @@ exports.getProfile = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+exports.updateUserProfile = async (req, res) => {
+  const { school, department, interests } = req.body;
+
+  try {
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    user.school = school;
+    user.department = department;
+    user.interests = interests;
+
+    await user.save();
+
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.selectSchool = async (req, res) => {
+  const { schoolId } = req.body;
+  try {
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    user.school = schoolId;
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.selectDepartment = async (req, res) => {
+  const { departmentId } = req.body;
+  try {
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    user.department = departmentId;
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.selectInterests = async (req, res) => {
+  const { interests } = req.body;
+  try {
+    let user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    user.interests = interests;
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};

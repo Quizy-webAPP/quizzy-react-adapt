@@ -4,18 +4,23 @@ const Interest = require('../models/Interest');
 // @desc    Create a new interest
 // @access  Private
 exports.createInterest = async (req, res) => {
-  try {
-    const { name, school, department } = req.body;
-
-    const newInterest = new Interest({ name, school, department });
-    await newInterest.save();
-
-    res.status(201).json(newInterest);
-  } catch (error) {
-    console.error('Error creating interest:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
+    try {
+      const { name, school, department } = req.body;
+  
+      if (!name || !school || !department) {
+        return res.status(400).json({ message: 'Name, school, and department are required.' });
+      }
+  
+      const interest = new Interest({ name, school, department });
+      await interest.save();
+  
+      res.status(201).json(interest);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
 
 // @route   GET api/interests
 // @desc    Get all interests

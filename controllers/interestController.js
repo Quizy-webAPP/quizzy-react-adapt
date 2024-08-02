@@ -1,25 +1,41 @@
 const Interest = require('../models/Interest');
+const Department = require('../models/department');
+const School = require('../models/School');
 
 // @route   POST api/interests
 // @desc    Create a new interest
 // @access  Private
 exports.createInterest = async (req, res) => {
     try {
-      const { name, school, department } = req.body;
-  
-      if (!name || !school || !department) {
-        return res.status(400).json({ message: 'Name, school, and department are required.' });
-      }
-  
-      const interest = new Interest({ name, school, department });
-      await interest.save();
-  
-      res.status(201).json(interest);
+        const { name, school, department } = req.body;
+
+        if (!name || !school || !department) {
+            return res.status(400).json({ message: 'Name, school, and department are required.' });
+        }
+
+        // Check if the school exists
+        const existingSchool = await School.findOne({ name: school });
+        if (!existingSchool) {
+            return res.status(400).json({ message: 'School does not exist.' });
+        }
+
+        // Check if the department exists
+        const existingDepartment = await Department.findOne({ name: department, school: school });
+        if (!existingDepartment) {
+            return res.status(400).json({ message: 'Department does not exist in the specified school.' });
+        }
+
+        // Create and save the interest
+        const interest = new Interest({ name, school, department });
+        await interest.save();
+
+        res.status(201).json(interest);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
+        console.error('Error creating interest:', error);
+        res.status(500).json({ message: 'Server error' });
     }
-  };
+};
+
   
 
 // @route   GET api/interests

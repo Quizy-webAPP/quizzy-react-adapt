@@ -1,6 +1,6 @@
 const express = require('express');
 const { register, login, getProfile } = require('../controllers/authController');
-const auth = require('../middleware/auth'); // Assuming you have an auth middleware for protected routes
+const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   POST api/auth/register

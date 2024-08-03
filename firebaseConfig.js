@@ -8,4 +8,5 @@ admin.initializeApp({
 });
 
 const bucket = admin.storage().bucket();
+const firestore = admin.firestore();
 module.exports = bucket;

@@ -27,6 +27,7 @@ app.use('/api/questions', require('./routes/questionRoutes')); // Questions rout
 app.use('/api/students', require('./routes/studentRoutes'));
 app.use('/api/enrollments', require('./routes/enrollmentRoutes')); // New Enrollment routes
 app.use('/api/interests', require('./routes/interestRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes'));
 
 // Serve static files (for uploaded files)
 app.use('/uploads', express.static('uploads'));

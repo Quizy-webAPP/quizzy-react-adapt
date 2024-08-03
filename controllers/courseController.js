@@ -11,13 +11,20 @@ exports.createCourse = async (req, res) => {
 
     const newCourse = new Course({ name, department, category, description, thumbnail });
     const course = await newCourse.save();
+
+    // Create group in Firestore
+    await admin.firestore().collection('groups').doc(course._id.toString()).set({
+      name: course.name,
+      members: [],
+      createdAt: new Date()
+    });
+
     res.status(201).json(course);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: err.message });
   }
 };
-
 
 
 exports.getCourses = async (req, res) => {

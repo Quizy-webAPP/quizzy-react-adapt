@@ -8,6 +8,7 @@ const router = express.Router();
 // Multer configuration for handling file uploads
 const upload = multer({
   storage: multer.memoryStorage(), // Store file in memory temporarily
+  limits: { fileSize: 100 * 1024 * 1024 } // Limit file size to 100MB
 });
 
 // POST /api/videos/upload
@@ -35,7 +36,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
     });
 
     blobStream.on('error', (err) => {
-      return res.status(500).json({ message: 'Error uploading video to Firebase', error: err });
+      return res.status(500).json({ message: 'Error uploading video to Firebase', error: err.message });
     });
 
     blobStream.on('finish', async () => {

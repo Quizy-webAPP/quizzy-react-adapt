@@ -1,14 +1,13 @@
-// routes/video.js
 const express = require('express');
-const { bucket } = require('../firebase');
+const { bucket } = require('../firebase'); // Firebase bucket setup
 const multer = require('multer');
-const Video = require('../models/Video');
-const Course = require('../models/Course');
+const Video = require('../models/Video'); // MongoDB video model
+const Course = require('../models/Course'); // MongoDB course model
 const router = express.Router();
 
 // Multer configuration for handling file uploads
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.memoryStorage(), // Store file in memory temporarily
 });
 
 // POST /api/videos/upload
@@ -21,28 +20,35 @@ router.post('/upload', upload.single('video'), async (req, res) => {
       return res.status(400).json({ message: 'No video file uploaded' });
     }
 
+    // Check if courseId exists in MongoDB
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+
     // Upload the video to Firebase
-    const blob = bucket.file(videoFile.originalname);
+    const blob = bucket.file(`${Date.now()}_${videoFile.originalname}`);
     const blobStream = blob.createWriteStream({
       metadata: {
-        contentType: videoFile.mimetype,
+        contentType: videoFile.mimetype, // Set content type
       },
     });
 
     blobStream.on('error', (err) => {
-      res.status(500).json({ message: 'Error uploading video to Firebase', error: err });
+      return res.status(500).json({ message: 'Error uploading video to Firebase', error: err });
     });
 
     blobStream.on('finish', async () => {
-      // Construct the public URL to access the video
-      const videoUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURI(blob.name)}?alt=media`;
+      // Get the public URL for the uploaded video
+      const videoUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(blob.name)}?alt=media`;
 
-      // Save the video metadata in MongoDB
+      // Store the video metadata in MongoDB
       const newVideo = new Video({
         title,
         course: courseId,
         videoUrl,
       });
+
       await newVideo.save();
 
       res.status(200).json({ message: 'Video uploaded successfully', videoUrl });
@@ -50,7 +56,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
 
     blobStream.end(videoFile.buffer);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

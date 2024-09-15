@@ -19,14 +19,13 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB limit
 }).single('file');
 
-// Function to upload file to Firebase and return the file URL
 const uploadToFirebase = async (fileBuffer, fileName) => {
   try {
     const file = bucket.file(fileName);
     await file.save(fileBuffer, {
       metadata: { contentType: 'application/octet-stream' },
     });
-    const [url] = await file.getSignedUrl({ action: 'read', expires: '03-09-2491' }); // Set an appropriate expiry date
+    const [url] = await file.getSignedUrl({ action: 'read', expires: '03-09-2491' });
     return url;
   } catch (error) {
     console.error('Firebase upload error:', error.message);
@@ -34,7 +33,6 @@ const uploadToFirebase = async (fileBuffer, fileName) => {
   }
 };
 
-// Create a new question
 exports.createQuestion = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
@@ -49,7 +47,6 @@ exports.createQuestion = async (req, res) => {
         return res.status(400).json({ msg: 'File is required' });
       }
 
-      // Upload file to Firebase and get the URL
       const filePath = await uploadToFirebase(file.buffer, file.originalname);
 
       const newQuestion = new Question({
@@ -68,7 +65,6 @@ exports.createQuestion = async (req, res) => {
   });
 };
 
-// Get all questions
 exports.getQuestions = async (req, res) => {
   try {
     const questions = await Question.find().populate('course', 'name');
@@ -79,7 +75,6 @@ exports.getQuestions = async (req, res) => {
   }
 };
 
-// Update a question
 exports.updateQuestion = async (req, res) => {
   upload(req, res, async (err) => {
     if (err) {
@@ -96,7 +91,6 @@ exports.updateQuestion = async (req, res) => {
       const file = req.file;
 
       if (file) {
-        // Upload new file to Firebase and get the URL
         const filePath = await uploadToFirebase(file.buffer, file.originalname);
         question.filePath = filePath; // Update filePath with Firebase URL
       }
@@ -114,7 +108,6 @@ exports.updateQuestion = async (req, res) => {
   });
 };
 
-// Delete a question
 exports.deleteQuestion = async (req, res) => {
   try {
     let question = await Question.findById(req.params.id);

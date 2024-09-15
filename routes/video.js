@@ -61,4 +61,41 @@ router.post('/upload', upload.single('video'), async (req, res) => {
   }
 });
 
+// GET /api/videos
+// Fetch all videos and group them by courses
+router.get('/', async (req, res) => {
+  try {
+    // Find all videos and populate the course name field
+    const videos = await Video.find().populate('course', 'name');
+
+    // Create an object to group videos by course
+    const videosByCourse = {};
+
+    videos.forEach((video) => {
+      const courseId = video.course._id.toString();
+      const courseName = video.course.name;
+
+      // If the course ID doesn't exist in the map, initialize it
+      if (!videosByCourse[courseId]) {
+        videosByCourse[courseId] = {
+          courseName,
+          videos: [],
+        };
+      }
+
+      // Add the video to the corresponding course
+      videosByCourse[courseId].videos.push({
+        _id: video._id,
+        title: video.title,
+        videoUrl: video.videoUrl,
+        uploadDate: video.uploadDate,
+      });
+    });
+
+    res.status(200).json(videosByCourse);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router;

@@ -1,8 +1,8 @@
 const express = require('express');
-const { bucket } = require('../firebase'); // Firebase bucket setup
+const { bucket } = require('../firebaseConfig'); // Firebase bucket setup
 const multer = require('multer');
 const Video = require('../models/Video'); // MongoDB video model
-const Course = require('../models/Course'); // MongoDB course model
+const Course = require('../models/course'); // MongoDB course model
 const router = express.Router();
 
 // Multer configuration for handling file uploads

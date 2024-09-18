@@ -29,6 +29,7 @@ app.use('/api/enrollments', require('./routes/enrollmentRoutes')); // New Enroll
 app.use('/api/interests', require('./routes/interestRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/videos', require('./routes/video'));
+app.use('/api/quizzes', require('./controllers/quizcontroller')); // Quiz route for quizzes and submissions
 // Serve static files (for uploaded files)
 app.use('/uploads', express.static('uploads'));
 

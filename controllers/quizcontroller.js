@@ -13,6 +13,10 @@ router.post('/', authMiddleware, async (req, res) => {
         const { title, courseId, questions } = req.body;
         const teacherId = req.user.id;  // From JWT
 
+        if (!title || !courseId || !questions || !Array.isArray(questions)) {
+            return res.status(400).json({ error: 'Missing required fields or invalid data' });
+        }
+
         const quiz = new Quiz({
             title,
             courseId,
@@ -23,6 +27,7 @@ router.post('/', authMiddleware, async (req, res) => {
         await quiz.save();
         res.status(201).json(quiz);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Error creating quiz' });
     }
 });
@@ -34,6 +39,10 @@ router.post('/:quizId/submit', authMiddleware, async (req, res) => {
         const studentId = req.user.id;
         const quizId = req.params.quizId;
 
+        if (!answers || !Array.isArray(answers)) {
+            return res.status(400).json({ error: 'Invalid answers format' });
+        }
+
         const quiz = await Quiz.findById(quizId).populate('questions');
         if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
 
@@ -42,6 +51,8 @@ router.post('/:quizId/submit', authMiddleware, async (req, res) => {
 
         for (const answer of answers) {
             const question = await Question.findById(answer.questionId);
+            if (!question) continue;
+
             const isCorrect = question.options.some(opt => opt.text === answer.selectedOption && opt.isCorrect);
 
             submissionAnswers.push({
@@ -66,8 +77,10 @@ router.post('/:quizId/submit', authMiddleware, async (req, res) => {
 
         // Update student points
         const student = await User.findById(studentId);
-        student.points += totalScore;
-        await student.save();
+        if (student) {
+            student.points += totalScore;
+            await student.save();
+        }
 
         res.status(200).json({
             message: 'Quiz submitted successfully',
@@ -75,6 +88,7 @@ router.post('/:quizId/submit', authMiddleware, async (req, res) => {
             correctAnswers: submissionAnswers.filter(ans => ans.isCorrect).length
         });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Error submitting quiz' });
     }
 });
@@ -85,6 +99,7 @@ router.get('/leaderboard', async (req, res) => {
         const leaderboard = await User.find().sort({ points: -1 }).limit(10);
         res.status(200).json(leaderboard);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Error fetching leaderboard' });
     }
 });

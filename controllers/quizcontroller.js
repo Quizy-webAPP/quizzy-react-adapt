@@ -32,6 +32,42 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 });
 
+// GET /api/quizzes (Fetch all quizzes)
+router.get('/', async (req, res) => {
+    try {
+        const quizzes = await Quiz.find().populate('questions').exec();
+        res.status(200).json(quizzes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching quizzes' });
+    }
+});
+
+// GET /api/quizzes/:quizId (Fetch a specific quiz by ID)
+router.get('/:quizId', async (req, res) => {
+    try {
+        const quizId = req.params.quizId;
+        const quiz = await Quiz.findById(quizId).populate('questions').exec();
+        if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+        res.status(200).json(quiz);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching quiz' });
+    }
+});
+
+// GET /api/quizzes/course/:courseId (Fetch quizzes for a specific course)
+router.get('/course/:courseId', async (req, res) => {
+    try {
+        const courseId = req.params.courseId;
+        const quizzes = await Quiz.find({ courseId }).populate('questions').exec();
+        res.status(200).json(quizzes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching quizzes for course' });
+    }
+});
+
 // POST /api/quizzes/:quizId/submit (Submit a quiz)
 router.post('/:quizId/submit', authMiddleware, async (req, res) => {
     try {

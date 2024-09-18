@@ -32,6 +32,7 @@ app.use('/api/videos', require('./routes/video'));
 app.use('/api/quizzes', require('./controllers/quizcontroller')); // Quiz route for quizzes and submissions
 // Serve static files (for uploaded files)
 app.use('/uploads', express.static('uploads'));
+app.use('/api/quizzes/:quizId/questions', require('./routes/quizQuestionRoutes')); // Quiz Questions route
 
 // Error handling middleware
 app.use((err, req, res, next) => {

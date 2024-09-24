@@ -63,19 +63,23 @@ router.post('/upload', upload.single('video'), async (req, res) => {
 
 // GET /api/videos
 // Fetch all videos and group them by courses
+// GET /api/videos
 router.get('/', async (req, res) => {
   try {
-    // Find all videos and populate the course name field
     const videos = await Video.find().populate('course', 'name');
 
-    // Create an object to group videos by course
     const videosByCourse = {};
 
     videos.forEach((video) => {
+      if (!video.course) {
+        // If course is null, you can log or handle it accordingly
+        console.error(`Video ${video._id} has a null course reference.`);
+        return; // Skip this video
+      }
+
       const courseId = video.course._id.toString();
       const courseName = video.course.name;
 
-      // If the course ID doesn't exist in the map, initialize it
       if (!videosByCourse[courseId]) {
         videosByCourse[courseId] = {
           courseName,
@@ -83,7 +87,6 @@ router.get('/', async (req, res) => {
         };
       }
 
-      // Add the video to the corresponding course
       videosByCourse[courseId].videos.push({
         _id: video._id,
         title: video.title,
@@ -97,5 +100,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 module.exports = router;

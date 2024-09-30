@@ -1,4 +1,3 @@
-// models/Course.js
 const mongoose = require('mongoose');
 
 const CourseSchema = new mongoose.Schema({
@@ -9,6 +8,9 @@ const CourseSchema = new mongoose.Schema({
   description: { type: String, required: false },
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
   videos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Video' }], // Add this field to link videos
+  levels: { type: [Number], enum: [200, 300, 400, 601, 602], required: true }, // Add levels
+  code: { type: String, required: true }, // Add course code
+  credit_value: { type: Number, required: true } // Add credit value
 });
 
 module.exports = mongoose.model('Course', CourseSchema);

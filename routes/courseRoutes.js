@@ -2,7 +2,7 @@ const express = require('express');
 const { createCourse, getCourses, updateCourse, deleteCourse } = require('../controllers/courseController');
 const auth = require('../middleware/authMiddleware');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // Configure multer as needed
+const upload = multer({ dest: 'uploads/' }); // Multer will store the files temporarily before Firebase upload
 const router = express.Router();
 
 // @route   POST api/courses

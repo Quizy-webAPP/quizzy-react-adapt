@@ -10,8 +10,14 @@ exports.createCourse = async (req, res) => {
 
   try {
     // Validate required fields
-    if (!name || !department || !category || !levels || !code || !credit_value) {
+    if (!name || !department || !category || !levels || !code || credit_value === undefined) {
       return res.status(400).json({ msg: 'Name, department, category, levels, code, and credit value are required' });
+    }
+
+    // Parse credit_value as Number
+    const parsedCreditValue = Number(credit_value);
+    if (isNaN(parsedCreditValue)) {
+      return res.status(400).json({ msg: 'Credit value must be a number' });
     }
 
     // Upload thumbnail to Firebase Storage if provided
@@ -27,7 +33,7 @@ exports.createCourse = async (req, res) => {
         },
       });
 
-      // Option 1: Get a signed URL (Preferred for security)
+      // Get a signed URL (Preferred for security)
       thumbnailUrl = await file.getSignedUrl({
         action: 'read',
         expires: '03-01-2500', // Adjust as needed
@@ -45,7 +51,7 @@ exports.createCourse = async (req, res) => {
       thumbnail: thumbnailUrl ? thumbnailUrl[0] : null, // Store Firebase URL
       levels: typeof levels === 'string' ? levels.split(',').map(Number) : levels, // Handle both string and array inputs
       code,
-      credit_value,
+      credit_value: parsedCreditValue,
     });
 
     const course = await newCourse.save();
@@ -105,7 +111,7 @@ exports.updateCourse = async (req, res) => {
         },
       });
 
-      // Option 1: Get a signed URL (Preferred for security)
+      // Get a signed URL
       thumbnailUrl = await file.getSignedUrl({
         action: 'read',
         expires: '03-01-2500',
@@ -113,6 +119,15 @@ exports.updateCourse = async (req, res) => {
 
       // Clean up the temporary file after upload
       fs.unlinkSync(localFilePath);
+    }
+
+    // Parse credit_value as Number if provided
+    let parsedCreditValue = course.credit_value;
+    if (credit_value !== undefined) {
+      parsedCreditValue = Number(credit_value);
+      if (isNaN(parsedCreditValue)) {
+        return res.status(400).json({ msg: 'Credit value must be a number' });
+      }
     }
 
     // Update course fields
@@ -123,7 +138,7 @@ exports.updateCourse = async (req, res) => {
     course.thumbnail = thumbnailUrl ? thumbnailUrl[0] : course.thumbnail; // Store Firebase URL
     course.levels = levels ? (typeof levels === 'string' ? levels.split(',').map(Number) : levels) : course.levels;
     course.code = code || course.code;
-    course.credit_value = credit_value || course.credit_value;
+    course.credit_value = parsedCreditValue;
 
     course = await course.save();
     res.json(course);
@@ -132,6 +147,7 @@ exports.updateCourse = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
 
 exports.deleteCourse = async (req, res) => {
   try {

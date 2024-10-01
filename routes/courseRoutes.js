@@ -1,3 +1,4 @@
+// routes/courses.js
 const express = require('express');
 const { createCourse, getCourses, updateCourse, deleteCourse } = require('../controllers/courseController');
 const auth = require('../middleware/authMiddleware');

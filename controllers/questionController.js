@@ -1,16 +1,17 @@
-const admin = require('firebase-admin');
+const { bucket } = require('../firebaseConfig'); // Adjust the path based on your project structure
+
 const multer = require('multer');
 const Question = require('../models/question');
 
-// Initialize Firebase Admin SDK
-const serviceAccount = require('../school-management-e7a71-firebase-adminsdk-8dn9n-dbc0b4ca7b.json');
+// // Initialize Firebase Admin SDK
+// const serviceAccount = require('../school-management-e7a71-firebase-adminsdk-8dn9n-dbc0b4ca7b.json');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'gs://school-management-e7a71.appspot.com' // Replace with your Firebase Storage bucket URL
-});
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+//   storageBucket: 'gs://school-management-e7a71.appspot.com' // Replace with your Firebase Storage bucket URL
+// });
 
-const bucket = admin.storage().bucket();
+// const bucket = admin.storage().bucket();
 
 // Configure multer for in-memory file uploads
 const storage = multer.memoryStorage();

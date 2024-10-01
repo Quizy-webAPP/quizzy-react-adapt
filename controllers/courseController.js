@@ -1,5 +1,6 @@
+// controllers/courseController.js
 const Course = require('../models/course');
-const admin = require('firebase-admin');
+const { bucket } = require('../firebaseConfig'); // Adjust the path based on your project structure
 const path = require('path');
 const fs = require('fs');
 
@@ -8,6 +9,7 @@ exports.createCourse = async (req, res) => {
   let thumbnailUrl = null;
 
   try {
+    // Validate required fields
     if (!name || !department || !category || !levels || !code || !credit_value) {
       return res.status(400).json({ msg: 'Name, department, category, levels, code, and credit value are required' });
     }
@@ -15,7 +17,8 @@ exports.createCourse = async (req, res) => {
     // Upload thumbnail to Firebase Storage if provided
     if (req.file) {
       const localFilePath = req.file.path;
-      const firebaseStoragePath = `thumbnails/${Date.now()}_${req.file.originalname}`;
+      const firebaseStoragePath = `thumbnails/${Date.now()}_${path.basename(req.file.originalname)}`;
+      const file = bucket.file(firebaseStoragePath);
 
       await bucket.upload(localFilePath, {
         destination: firebaseStoragePath,
@@ -24,11 +27,10 @@ exports.createCourse = async (req, res) => {
         },
       });
 
-      // Get public URL of the file
-      const file = bucket.file(firebaseStoragePath);
+      // Option 1: Get a signed URL (Preferred for security)
       thumbnailUrl = await file.getSignedUrl({
         action: 'read',
-        expires: '03-01-2500', // Set expiration date
+        expires: '03-01-2500', // Adjust as needed
       });
 
       // Clean up the temporary file after upload
@@ -41,7 +43,7 @@ exports.createCourse = async (req, res) => {
       category,
       description,
       thumbnail: thumbnailUrl ? thumbnailUrl[0] : null, // Store Firebase URL
-      levels,
+      levels: typeof levels === 'string' ? levels.split(',').map(Number) : levels, // Handle both string and array inputs
       code,
       credit_value,
     });
@@ -66,7 +68,7 @@ exports.getCourses = async (req, res) => {
 
 exports.updateCourse = async (req, res) => {
   const { name, department, category, description, levels, code, credit_value } = req.body;
-  let thumbnailUrl = req.body.thumbnail;
+  let thumbnailUrl = req.body.thumbnail; // Existing thumbnail URL
 
   try {
     let course = await Course.findById(req.params.id);
@@ -76,8 +78,25 @@ exports.updateCourse = async (req, res) => {
 
     // Handle thumbnail update if provided
     if (req.file) {
+      // Delete the old thumbnail from Firebase if it exists
+      if (course.thumbnail) {
+        try {
+          const url = new URL(course.thumbnail);
+          const oldFilePath = url.pathname.startsWith('/')
+            ? url.pathname.substring(1)
+            : url.pathname; // Remove leading '/' if present
+
+          const oldFile = bucket.file(oldFilePath);
+          await oldFile.delete();
+        } catch (error) {
+          console.error('Failed to delete old thumbnail:', error.message);
+          // Optionally, you can choose to proceed or return an error here
+        }
+      }
+
       const localFilePath = req.file.path;
-      const firebaseStoragePath = `thumbnails/${Date.now()}_${req.file.originalname}`;
+      const firebaseStoragePath = `thumbnails/${Date.now()}_${path.basename(req.file.originalname)}`;
+      const file = bucket.file(firebaseStoragePath);
 
       await bucket.upload(localFilePath, {
         destination: firebaseStoragePath,
@@ -86,22 +105,23 @@ exports.updateCourse = async (req, res) => {
         },
       });
 
-      // Get public URL of the file
-      const file = bucket.file(firebaseStoragePath);
+      // Option 1: Get a signed URL (Preferred for security)
       thumbnailUrl = await file.getSignedUrl({
         action: 'read',
         expires: '03-01-2500',
       });
 
+      // Clean up the temporary file after upload
       fs.unlinkSync(localFilePath);
     }
 
+    // Update course fields
     course.name = name || course.name;
     course.department = department || course.department;
     course.category = category || course.category;
     course.description = description || course.description;
     course.thumbnail = thumbnailUrl ? thumbnailUrl[0] : course.thumbnail; // Store Firebase URL
-    course.levels = levels || course.levels;
+    course.levels = levels ? (typeof levels === 'string' ? levels.split(',').map(Number) : levels) : course.levels;
     course.code = code || course.code;
     course.credit_value = credit_value || course.credit_value;
 
@@ -118,6 +138,22 @@ exports.deleteCourse = async (req, res) => {
     let course = await Course.findById(req.params.id);
     if (!course) {
       return res.status(404).json({ msg: 'Course not found' });
+    }
+
+    // Delete the thumbnail from Firebase if it exists
+    if (course.thumbnail) {
+      try {
+        const url = new URL(course.thumbnail);
+        const filePath = url.pathname.startsWith('/')
+          ? url.pathname.substring(1)
+          : url.pathname; // Remove leading '/' if present
+
+        const file = bucket.file(filePath);
+        await file.delete();
+      } catch (error) {
+        console.error('Failed to delete thumbnail:', error.message);
+        // Optionally, you can choose to proceed or return an error here
+      }
     }
 
     await course.remove();

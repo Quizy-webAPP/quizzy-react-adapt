@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, required: true, default: 'student' },
   rank: { type: Number, default: 0 },
+  points: { type: Number, default: 0 }, // Points for students
   school: {
     type: String,
     default: '',

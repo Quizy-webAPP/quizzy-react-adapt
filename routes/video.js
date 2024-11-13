@@ -14,7 +14,7 @@ const upload = multer({
 // POST /api/videos/upload
 router.post('/upload', upload.single('video'), async (req, res) => {
   try {
-    const { courseId, title } = req.body;
+    const { courseId, title, module } = req.body;
     const videoFile = req.file;
 
     if (!videoFile) {
@@ -48,6 +48,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
         title,
         course: courseId,
         videoUrl,
+        module, // Save the module number
       });
 
       await newVideo.save();
@@ -60,6 +61,7 @@ router.post('/upload', upload.single('video'), async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 // GET /api/videos
 // Fetch all videos and group them by courses

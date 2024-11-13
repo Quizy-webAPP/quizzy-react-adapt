@@ -18,6 +18,10 @@ const VideoSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  module: {
+    type: Number, // Defines module as an integer
+    required: true, // Make it required if needed
+  },
 });
 
 module.exports = mongoose.model('Video', VideoSchema);

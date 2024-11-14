@@ -38,7 +38,6 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -46,6 +45,13 @@ exports.login = async (req, res) => {
     let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+
+    console.log(user); // Log the user object to check role
+
+    // Ensure the role exists
+    if (!user.role) {
+      return res.status(400).json({ msg: 'User role is missing' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

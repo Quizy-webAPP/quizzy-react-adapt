@@ -67,14 +67,14 @@ exports.login = async (req, res) => {
     const payload = {
       user: {
         id: user.id,
-        role: user.role // Include role in payload
+        role: user.role, // Include role here
       },
-    };
+    };    
 
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
       if (err) throw err;
-      res.json({ token });
-    });
+      res.json({ token, role: user.role }); // Include role explicitly
+    });    
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

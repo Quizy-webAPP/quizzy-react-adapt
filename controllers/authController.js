@@ -60,7 +60,7 @@ exports.login = async (req, res) => {
     }
 
     // Check if the user's role is correct
-    if (user.role !== 'main') {  // Replace 'main' with your required role
+    if (user.role !== 'student') {  // Replace 'main' with your required role
       return res.status(403).json({ msg: 'Access Denied: Incorrect role' });
     }
 

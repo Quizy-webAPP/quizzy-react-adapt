@@ -38,6 +38,7 @@ exports.register = async (req, res) => {
   }
 };
 
+
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -50,6 +51,11 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Invalid credentials' });
+    }
+
+    // Check if the user's role is correct
+    if (user.role !== 'main') {  // Replace 'main' with your required role
+      return res.status(403).json({ msg: 'Access Denied: Incorrect role' });
     }
 
     const payload = {

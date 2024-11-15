@@ -5,13 +5,19 @@ const path = require('path');
 const fs = require('fs');
 
 exports.createCourse = async (req, res) => {
-  const { name, department, category, description, levels, code, credit_value } = req.body;
+  const { name, department, category, description, levels, code, credit_value, teacher } = req.body;
   let thumbnailUrl = null;
 
   try {
     // Validate required fields
-    if (!name || !department || !category || !levels || !code || credit_value === undefined) {
-      return res.status(400).json({ msg: 'Name, department, category, levels, code, and credit value are required' });
+    if (!name || !department || !category || !levels || !code || !teacher || credit_value === undefined) {
+      return res.status(400).json({ msg: 'Name, department, category, levels, code, and credit value, and teacher are required' });
+    }
+
+    // Additional validation for teacher if necessary
+    const teacherExists = await User.findById(teacher);
+    if (!teacherExists) {
+      return res.status(404).json({ msg: 'Teacher not found' });
     }
 
     // Parse credit_value as Number
@@ -52,6 +58,7 @@ exports.createCourse = async (req, res) => {
       levels: typeof levels === 'string' ? levels.split(',').map(Number) : levels, // Handle both string and array inputs
       code,
       credit_value: parsedCreditValue,
+      teacher,
     });
 
     const course = await newCourse.save();
@@ -64,7 +71,9 @@ exports.createCourse = async (req, res) => {
 
 exports.getCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate('department');
+    const courses = await Course.find()
+    .populate('department')
+    .populate('teacher', 'name thumbnail');
     res.json(courses);
   } catch (err) {
     console.error(err.message);

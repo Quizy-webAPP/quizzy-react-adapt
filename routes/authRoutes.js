@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getProfile, updateUserProfile, selectSchool, selectDepartment, selectInterests } = require('../controllers/authController');
+const { register, login,login_main, getProfile, updateUserProfile, selectSchool, selectDepartment, selectInterests } = require('../controllers/authController');
 const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -12,6 +12,8 @@ router.post('/register', register);
 // @desc    Authenticate user & get token
 // @access  Public
 router.post('/login', login);
+
+router.post('/login_main', login_main);
 
 // @route   GET api/auth/profile
 // @desc    Get user profile

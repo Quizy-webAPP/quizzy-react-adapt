@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login,login_main, getProfile, updateUserProfile, selectSchool, selectDepartment, selectInterests } = require('../controllers/authController');
+const { register, login,login_main,fetchTeachers, getProfile, updateUserProfile, selectSchool, selectDepartment, selectInterests } = require('../controllers/authController');
 const auth = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -19,6 +19,8 @@ router.post('/login_main', login_main);
 // @desc    Get user profile
 // @access  Private
 router.get('/profile', auth, getProfile);
+
+router.get('/teachers', auth, fetchTeachers);
 
 // @route   PUT api/auth/updateProfile
 // @desc    Update user profile

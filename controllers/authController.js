@@ -124,6 +124,15 @@ exports.login_main = async (req, res) => {
   }
 };
 
+exports.fetchTeachers = async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'main' }).select('-password');
+    res.json(teachers);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+};
 
 exports.getProfile = async (req, res) => {
   try {
